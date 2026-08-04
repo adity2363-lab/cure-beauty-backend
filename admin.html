@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Cure Beauty — Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Arial, sans-serif; background: #FFF6F4; margin: 0; padding: 20px; color: #2B1E22; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #8B7378; font-size: 13px; margin-bottom: 20px; }
+  input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #EFDEE1; font-size: 15px; box-sizing: border-box; }
+  button { padding: 12px 18px; border-radius: 10px; border: none; background: #9B1B45; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
+  #loginBox { max-width: 320px; margin: 60px auto; text-align: center; }
+  #loginBox input { margin-bottom: 10px; }
+  #loginBox button { width: 100%; }
+  .card { background: #fff; border: 1px solid #F3E5E8; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .id { font-weight: 800; }
+  .status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: capitalize; }
+  .s-confirmed { background: #FFF0D6; color: #A66A00; }
+  .s-packed { background: #E3E8FF; color: #33409B; }
+  .s-shipped { background: #DDEFFF; color: #1A5FA8; }
+  .s-delivered { background: #E3F5E8; color: #2E7D45; }
+  .s-cancelled { background: #FDEAEA; color: #B3261E; }
+  .muted { color: #8B7378; font-size: 12.5px; }
+  .items { margin: 8px 0; font-size: 13px; }
+  select { padding: 6px 8px; border-radius: 8px; border: 1px solid #EFDEE1; font-size: 12.5px; }
+  #error { color: #B3261E; font-size: 13px; margin-top: 8px; }
+  #empty { text-align: center; color: #8B7378; padding: 40px 0; }
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h1>Cure Beauty Admin</h1>
+  <div class="sub">Enter the admin password to view orders</div>
+  <input id="pw" type="password" placeholder="Admin password" />
+  <button onclick="login()">Login</button>
+  <div id="error"></div>
+</div>
+
+<div class="wrap" id="dashboard" style="display:none">
+  <h1>Orders</h1>
+  <div class="sub" id="count"></div>
+  <div id="orders"></div>
+  <div id="empty" style="display:none">No orders yet.</div>
+</div>
+
+<script>
+  const API_BASE = window.location.origin + "/api";
+  let token = localStorage.getItem("admin_token") || "";
+
+  async function login() {
+    const pw = document.getElementById("pw").value;
+    document.getElementById("error").textContent = "";
+    try {
+      const res = await fetch(`${API_BASE}/admin/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Login failed");
+      token = data.token;
+      localStorage.setItem("admin_token", token);
+      showDashboard();
+    } catch (e) {
+      document.getElementById("error").textContent = e.message;
+    }
+  }
+
+  async function loadOrders() {
+    const res = await fetch(`${API_BASE}/admin/orders`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) { localStorage.removeItem("admin_token"); document.getElementById("loginBox").style.display = "block"; document.getElementById("dashboard").style.display = "none"; return; }
+    const orders = await res.json();
+    document.getElementById("count").textContent = orders.length + " total orders";
+    document.getElementById("empty").style.display = orders.length ? "none" : "block";
+    document.getElementById("orders").innerHTML = orders.map(renderOrder).join("");
+  }
+
+  function renderOrder(o) {
+    const items = o.items.map(it => `${it.name} × ${it.quantity}`).join(", ");
+    const addr = o.addr_line ? `${o.addr_line}, ${o.addr_city} - ${o.addr_pincode}` : "No address";
+    const statuses = ["confirmed", "packed", "shipped", "delivered", "cancelled"];
+    return `
+      <div class="card">
+        <div class="row">
+          <span class="id">Order #${o.id}</span>
+          <span class="status s-${o.status}">${o.status}</span>
+        </div>
+        <div class="muted">${new Date(o.created_at).toLocaleString("en-IN")}</div>
+        <div class="items">${items}</div>
+        <div class="muted">👤 ${o.customer_name} · 📞 ${o.customer_phone}</div>
+        <div class="muted">📍 ${addr}</div>
+        <div class="row" style="margin-top:10px">
+          <b>₹${o.total}</b>
+          <select onchange="updateStatus(${o.id}, this.value)">
+            ${statuses.map(s => `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
+          </select>
+        </div>
+      </div>`;
+  }
+
+  async function updateStatus(orderId, status) {
+    await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status }),
+    });
+    loadOrders();
+  }
+
+  function showDashboard() {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    loadOrders();
+    setInterval(loadOrders, 15000); // refresh every 15s so new orders show up automatically
+  }
+
+  if (token) showDashboard();
+</script>
+</body>
+</html>
