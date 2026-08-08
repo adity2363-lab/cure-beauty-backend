@@ -53,4 +53,36 @@ router.patch("/orders/:id/status", adminOnly, (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Product management ----
+
+// GET /api/admin/products
+router.get("/products", adminOnly, (req, res) => {
+  res.json(db.prepare("SELECT * FROM products ORDER BY id DESC").all());
+});
+
+// POST /api/admin/products  { name, brand, price, mrp, concern, category, image_url, description, stock }
+router.post("/products", adminOnly, (req, res) => {
+  const { name, brand, price, mrp, concern, category, image_url, description, stock } = req.body;
+  if (!name || !price) return res.status(400).json({ error: "name and price are required" });
+  const info = db.prepare(`INSERT INTO products (name, brand, price, mrp, concern, category, image_url, description, stock) VALUES (?,?,?,?,?,?,?,?,?)`)
+    .run(name, brand || "", price, mrp || price, concern || "", category || "Face", image_url || "", description || "", stock ?? 100);
+  res.json(db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid));
+});
+
+// PATCH /api/admin/products/:id
+router.patch("/products/:id", adminOnly, (req, res) => {
+  const fields = ["name", "brand", "price", "mrp", "concern", "category", "image_url", "description", "stock"];
+  const updates = fields.filter((f) => req.body[f] !== undefined);
+  if (!updates.length) return res.status(400).json({ error: "Nothing to update" });
+  const setClause = updates.map((f) => `${f} = ?`).join(", ");
+  db.prepare(`UPDATE products SET ${setClause} WHERE id = ?`).run(...updates.map((f) => req.body[f]), req.params.id);
+  res.json(db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id));
+});
+
+// DELETE /api/admin/products/:id
+router.delete("/products/:id", adminOnly, (req, res) => {
+  db.prepare("DELETE FROM products WHERE id = ?").run(req.params.id);
+  res.json({ success: true });
+});
+
 module.exports = router;
