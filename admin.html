@@ -1,136 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Cure Beauty — Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, Arial, sans-serif; background: #FFF6F4; margin: 0; padding: 16px; color: #2B1E22; }
-  .wrap { max-width: 720px; margin: 0 auto; }
-  h1 { font-size: 20px; margin: 0; }
-  h2 { font-size: 15px; margin: 0 0 10px; }
-  .sub { color: #8B7378; font-size: 12.5px; }
-  input, textarea, select.field { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid #EFDEE1; font-size: 14px; box-sizing: border-box; font-family: inherit; }
-  label { font-size: 12px; font-weight: 600; color: #5A484D; display: block; margin: 10px 0 4px; }
-  button { padding: 11px 16px; border-radius: 10px; border: none; background: #9B1B45; color: #fff; font-weight: 700; font-size: 13.5px; cursor: pointer; }
-  #loginBox { max-width: 320px; margin: 60px auto; text-align: center; }
-  #loginBox input { margin-bottom: 10px; }
-  #loginBox button { width: 100%; }
-  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .logout { background: #fff; border: 1px solid #EFDEE1; color: #9B1B45; padding: 7px 12px; font-size: 12px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cure Beauty · Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .navtabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .navtab { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #EFDEE1; background: #fff; color: #5A484D; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center; }
-  .navtab.active { background: #9B1B45; color: #fff; border-color: #9B1B45; }
+    :root {
+      --bg: #fcf4f7;
+      --card: #ffffff;
+      --text: #1e1418;
+      --text-muted: #7a5f67;
+      --border: #edd7dd;
+      --primary: #9b1b45;
+      --primary-hover: #7f1538;
+      --shadow: 0 4px 20px rgba(155, 27, 69, 0.06);
+      --radius: 16px;
+      --transition: all 0.3s ease;
+    }
+    [data-theme="dark"] {
+      --bg: #1a1115;
+      --card: #2a1e24;
+      --text: #f0e6ea;
+      --text-muted: #b0959e;
+      --border: #3d2a32;
+      --primary: #c92a5e;
+      --primary-hover: #db3d72;
+      --shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
 
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-  .stat { background: #fff; border: 1px solid #F3E5E8; border-radius: 12px; padding: 10px; text-align: center; }
-  .stat .num { font-size: 18px; font-weight: 800; }
-  .stat .label { font-size: 10.5px; color: #8B7378; margin-top: 2px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); padding: 20px 16px; color: var(--text); transition: var(--transition); }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--border); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
-  #search { margin-bottom: 10px; }
-  .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 2px; }
-  .tab { flex-shrink: 0; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid #EFDEE1; background: #fff; color: #5A484D; cursor: pointer; }
-  .tab.active { background: #9B1B45; color: #fff; border-color: #9B1B45; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; background: var(--card); padding: 16px 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .topbar h1 { font-size: 24px; }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-  .card { background: #fff; border: 1px solid #F3E5E8; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
-  .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .id { font-weight: 800; }
-  .status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: capitalize; }
-  .s-confirmed { background: #FFF0D6; color: #A66A00; }
-  .s-packed { background: #E3E8FF; color: #33409B; }
-  .s-shipped { background: #DDEFFF; color: #1A5FA8; }
-  .s-delivered { background: #E3F5E8; color: #2E7D45; }
-  .s-cancelled { background: #FDEAEA; color: #B3261E; }
-  .muted { color: #8B7378; font-size: 12.5px; }
-  .items { margin: 8px 0; font-size: 13px; }
-  select { padding: 6px 8px; border-radius: 8px; border: 1px solid #EFDEE1; font-size: 12.5px; }
-  #error { color: #B3261E; font-size: 13px; margin-top: 8px; }
-  #prodError { color: #B3261E; font-size: 12.5px; margin-top: 8px; }
-  #empty, #prodEmpty { text-align: center; color: #8B7378; padding: 40px 0; }
+    .btn { padding: 10px 20px; border-radius: 40px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(155, 27, 69, 0.25); }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-secondary:hover { opacity: 0.8; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
 
-  .formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
-  .prodRow { display: flex; gap: 10px; align-items: center; }
-  .prodRow .info { flex: 1; min-width: 0; }
-  .prodName { font-weight: 700; font-size: 13.5px; }
-  .prodMeta { font-size: 12px; color: #8B7378; margin-top: 2px; }
-  .delBtn { background: #fff; border: 1px solid #EFDEE1; color: #B3261E; padding: 6px 10px; font-size: 11.5px; }
-  #addProductForm { display: none; }
-</style>
+    .theme-toggle { background: var(--border); border: none; border-radius: 40px; padding: 8px 12px; cursor: pointer; font-size: 18px; transition: var(--transition); }
+    .theme-toggle:hover { transform: rotate(30deg); }
+
+    .navtabs { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
+    .navtab { padding: 12px 24px; border-radius: 40px; border: 2px solid var(--border); background: var(--card); color: var(--text-muted); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--transition); }
+    .navtab:hover { transform: translateY(-2px); }
+    .navtab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); border-radius: var(--radius); padding: 18px 16px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: var(--transition); }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(155, 27, 69, 0.1); }
+    .stat-card .num { font-size: 28px; font-weight: 800; }
+    .stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .filters-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .filters-row input, .filters-row select { padding: 10px 16px; border-radius: 40px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; flex: 1; min-width: 150px; }
+    .filters-row input:focus, .filters-row select:focus { outline: none; border-color: var(--primary); }
+
+    .tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px; flex-wrap: wrap; }
+    .tab { padding: 8px 20px; border-radius: 40px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--border); background: var(--card); color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: var(--transition); }
+    .tab:hover { transform: scale(1.05); }
+    .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .tab .badge { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 40px; margin-left: 6px; }
+
+    .card { background: var(--card); border-radius: var(--radius); padding: 18px 16px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: var(--transition); animation: slideIn 0.3s ease; }
+    .card:hover { box-shadow: 0 6px 30px rgba(155, 27, 69, 0.08); }
+
+    .order-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .order-id { font-weight: 800; font-size: 16px; }
+    .order-status { font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 40px; text-transform: capitalize; }
+    .status-confirmed { background: #fef1da; color: #a05f00; }
+    .status-packed { background: #e7ebff; color: #33409b; }
+    .status-shipped { background: #ddefff; color: #1a5fa8; }
+    .status-delivered { background: #e2f3e8; color: #1f6f3e; }
+    .status-cancelled { background: #fce7e7; color: #b3261e; }
+
+    .order-meta { color: var(--text-muted); font-size: 13px; margin: 4px 0; }
+    .order-items { margin: 8px 0; font-size: 14px; }
+    .order-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    select { padding: 8px 14px; border-radius: 40px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 12.5px; cursor: pointer; }
+
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .product-card { background: var(--card); border-radius: var(--radius); padding: 16px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: var(--transition); }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(155, 27, 69, 0.1); }
+    .product-name { font-weight: 700; font-size: 15px; }
+    .product-meta { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+    .product-price { font-size: 17px; font-weight: 800; color: var(--primary); margin-top: 8px; }
+    .product-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; font-family: inherit; transition: var(--transition); }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(155, 27, 69, 0.1); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--card); border-radius: var(--radius); padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-muted); }
+    .modal ul { padding-left: 18px; margin: 10px 0; }
+    .modal li { margin-bottom: 4px; font-size: 14px; }
+
+    .notification { position: fixed; top: 20px; right: 20px; padding: 16px 24px; border-radius: var(--radius); background: var(--card); border-left: 4px solid var(--primary); box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 2000; transform: translateX(120%); transition: transform 0.4s ease; max-width: 400px; }
+    .notification.show { transform: translateX(0); }
+    .notification-title { font-weight: 700; margin-bottom: 4px; }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .products-grid { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .topbar-actions { justify-content: center; }
+      .filters-row { flex-direction: column; }
+      .filters-row input, .filters-row select { width: 100%; min-width: unset; }
+      .modal { padding: 20px; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .navtab { font-size: 12px; padding: 8px 14px; }
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 <body>
 
-<div id="loginBox">
-  <h1>Cure Beauty Admin</h1>
-  <div class="sub" style="margin-bottom:16px">Enter the admin password to view orders</div>
-  <input id="pw" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()" />
-  <button onclick="login()">Login</button>
-  <div id="error"></div>
+<div id="loginBox" style="max-width:380px;margin:80px auto;padding:32px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);text-align:center;">
+  <h1 style="font-size:28px;">🌸 Cure Beauty</h1>
+  <p style="color:var(--text-muted);margin-bottom:20px;">Admin Dashboard</p>
+  <input id="pw" type="password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()" style="width:100%;padding:14px;border-radius:40px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;margin-bottom:12px;" />
+  <button onclick="login()" class="btn btn-primary" style="width:100%;justify-content:center;">Login</button>
+  <div id="error" style="color:#dc3545;margin-top:10px;"></div>
 </div>
 
-<div class="wrap" id="dashboard" style="display:none">
+<div class="wrap" id="dashboard" style="display:none;">
   <div class="topbar">
     <div>
-      <h1>Cure Beauty Admin</h1>
+      <h1>🌸 Cure Beauty</h1>
+      <span style="color:var(--text-muted);font-size:13px;">Admin Dashboard</span>
     </div>
-    <button class="logout" onclick="logout()">Logout</button>
+    <div class="topbar-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportOrders()">📤 Export</button>
+      <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <div class="navtabs">
     <div class="navtab active" id="navOrders" onclick="switchSection('orders')">📦 Orders</div>
     <div class="navtab" id="navProducts" onclick="switchSection('products')">🧴 Products</div>
+    <div class="navtab" id="navCustomers" onclick="switchSection('customers')">👤 Customers</div>
+    <div class="navtab" id="navAnalytics" onclick="switchSection('analytics')">📊 Analytics</div>
   </div>
 
-  <!-- ORDERS SECTION -->
+  <!-- Orders -->
   <div id="ordersSection">
-    <div class="stats">
-      <div class="stat"><div class="num" id="statTotal">0</div><div class="label">Total orders</div></div>
-      <div class="stat"><div class="num" id="statPending">0</div><div class="label">Pending</div></div>
-      <div class="stat"><div class="num" id="statRevenue">₹0</div><div class="label">Revenue</div></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Total Orders</div></div>
+      <div class="stat-card"><div class="num" id="statPending">0</div><div class="label">Pending</div></div>
+      <div class="stat-card"><div class="num" id="statRevenue">₹0</div><div class="label">Revenue</div></div>
+      <div class="stat-card"><div class="num" id="statAvgOrder">₹0</div><div class="label">Avg Order Value</div></div>
     </div>
-    <input id="search" placeholder="Search by customer name or phone..." oninput="render()" />
+
+    <div class="filters-row">
+      <input id="search" placeholder="🔍 Search by name or phone..." oninput="render()" />
+      <select id="filterDate" onchange="render()">
+        <option value="all">All Time</option>
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+      </select>
+    </div>
+
     <div class="tabs" id="tabs"></div>
     <div id="orders"></div>
-    <div id="empty" style="display:none">No orders match.</div>
+    <div id="empty" style="display:none;text-align:center;padding:60px 0;color:var(--text-muted);">No orders found</div>
   </div>
 
-  <!-- PRODUCTS SECTION -->
-  <div id="productsSection" style="display:none">
-    <button onclick="toggleAddForm()" style="width:100%;margin-bottom:14px" id="addToggleBtn">+ Add new product</button>
-
-    <div class="card" id="addProductForm">
-      <h2 id="formTitle">Add product</h2>
-      <label>Product name *</label>
-      <input id="p_name" placeholder="e.g. Vitamin C Face Wash" />
-      <div class="formGrid">
-        <div><label>Brand</label><input id="p_brand" placeholder="e.g. Mamaearth" /></div>
-        <div><label>Category</label>
-          <select class="field" id="p_category">
-            <option>Face</option><option>Body</option><option>Hair</option><option>Serums</option><option>Sunscreen</option>
-          </select>
-        </div>
-        <div><label>Selling price (₹) *</label><input id="p_price" type="number" placeholder="299" /></div>
-        <div><label>MRP (₹)</label><input id="p_mrp" type="number" placeholder="399" /></div>
-      </div>
-      <label>Concern</label>
-      <select class="field" id="p_concern">
-        <option>Brightening</option><option>Hydration</option><option>Acne</option><option>Anti-Aging</option><option>Deep Cleanse</option><option>Sun Protection</option>
-      </select>
-      <label>Description</label>
-      <textarea id="p_description" rows="2" placeholder="Short description shown on the product page"></textarea>
-      <label>Image URL (optional)</label>
-      <input id="p_image" placeholder="https://... (leave blank to use a placeholder color)" />
-      <div style="display:flex; gap:8px; margin-top:14px">
-        <button onclick="saveProduct()" style="flex:1">Save product</button>
-        <button onclick="cancelForm()" style="background:#fff;border:1px solid #EFDEE1;color:#5A484D">Cancel</button>
-      </div>
-      <div id="prodError"></div>
+  <!-- Products -->
+  <div id="productsSection" style="display:none;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="toggleAddForm()">➕ Add Product</button>
+      <button class="btn btn-secondary" onclick="loadProducts()">🔄 Refresh</button>
     </div>
 
-    <div id="products"></div>
-    <div id="prodEmpty" style="display:none">No products yet.</div>
+    <div class="card" id="addProductForm" style="display:none;">
+      <h2 id="formTitle" style="margin-bottom:12px;">Add Product</h2>
+      <div class="form-group"><label>Product Name *</label><input id="p_name" class="form-control" placeholder="e.g. Vitamin C Face Wash" /></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Brand</label><input id="p_brand" class="form-control" placeholder="e.g. Mamaearth" /></div>
+        <div class="form-group"><label>Category</label>
+          <select id="p_category" class="form-control"><option>Face</option><option>Body</option><option>Hair</option><option>Serums</option><option>Sunscreen</option></select>
+        </div>
+        <div class="form-group"><label>Price (₹) *</label><input id="p_price" type="number" class="form-control" placeholder="299" /></div>
+        <div class="form-group"><label>MRP (₹)</label><input id="p_mrp" type="number" class="form-control" placeholder="399" /></div>
+      </div>
+      <div class="form-group"><label>Stock Quantity</label><input id="p_stock" type="number" class="form-control" placeholder="100" value="100" /></div>
+      <div class="form-group"><label>Concern</label>
+        <select id="p_concern" class="form-control"><option>Brightening</option><option>Hydration</option><option>Acne</option><option>Anti-Aging</option><option>Deep Cleanse</option><option>Sun Protection</option></select>
+      </div>
+      <div class="form-group"><label>Description</label><textarea id="p_description" rows="2" class="form-control" placeholder="Short product description"></textarea></div>
+      <div class="form-group"><label>Image URL</label><input id="p_image" class="form-control" placeholder="https://example.com/image.jpg" /></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="saveProduct()">💾 Save</button>
+        <button class="btn btn-secondary" onclick="cancelForm()">Cancel</button>
+      </div>
+      <div id="prodError" style="color:#dc3545;margin-top:8px;"></div>
+    </div>
+
+    <div class="products-grid" id="products"></div>
+    <div id="prodEmpty" style="display:none;text-align:center;padding:60px 0;color:var(--text-muted);">No products available</div>
   </div>
+
+  <!-- Customers (derived from orders — no separate backend needed) -->
+  <div id="customersSection" style="display:none;">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="customerCount">0</div><div class="label">Total Customers</div></div>
+      <div class="stat-card"><div class="num" id="topCustomer">-</div><div class="label">Top Customer</div></div>
+    </div>
+    <div id="customersList"></div>
+  </div>
+
+  <!-- Analytics (derived from orders — no separate backend needed) -->
+  <div id="analyticsSection" style="display:none;">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="todayRevenue">₹0</div><div class="label">Today's Revenue</div></div>
+      <div class="stat-card"><div class="num" id="weekRevenue">₹0</div><div class="label">This Week</div></div>
+      <div class="stat-card"><div class="num" id="monthRevenue">₹0</div><div class="label">This Month</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:10px;">📈 Top Products</h3>
+      <div id="topProductsList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Order Details</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="notification" id="notification">
+  <div class="notification-title" id="notifTitle">Notification</div>
+  <div id="notifMessage">Message</div>
 </div>
 
 <script>
@@ -142,6 +269,27 @@
   let editingProductId = null;
   const STATUSES = ["confirmed", "packed", "shipped", "delivered", "cancelled"];
 
+  // ---- Theme ----
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  (function loadTheme() { document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light'); })();
+
+  // ---- Notification toast ----
+  function notify(title, message, type = 'info') {
+    const el = document.getElementById('notification');
+    document.getElementById('notifTitle').textContent = title;
+    document.getElementById('notifMessage').textContent = message;
+    el.style.borderLeftColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#9b1b45';
+    el.classList.add('show');
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  // ---- Auth ----
   async function login() {
     const pw = document.getElementById("pw").value;
     document.getElementById("error").textContent = "";
@@ -152,6 +300,7 @@
       token = data.token;
       localStorage.setItem("admin_token", token);
       showDashboard();
+      notify('Welcome!', 'Successfully logged in as admin', 'success');
     } catch (e) {
       document.getElementById("error").textContent = e.message;
     }
@@ -162,23 +311,30 @@
     token = "";
     document.getElementById("dashboard").style.display = "none";
     document.getElementById("loginBox").style.display = "block";
+    document.getElementById("pw").value = "";
   }
 
+  // ---- Navigation ----
   function switchSection(section) {
-    document.getElementById("navOrders").classList.toggle("active", section === "orders");
-    document.getElementById("navProducts").classList.toggle("active", section === "products");
-    document.getElementById("ordersSection").style.display = section === "orders" ? "block" : "none";
-    document.getElementById("productsSection").style.display = section === "products" ? "block" : "none";
-    if (section === "products") loadProducts();
+    document.querySelectorAll('.navtab').forEach(el => el.classList.remove('active'));
+    document.getElementById(`nav${section.charAt(0).toUpperCase() + section.slice(1)}`).classList.add('active');
+    ['ordersSection', 'productsSection', 'customersSection', 'analyticsSection'].forEach(id => document.getElementById(id).style.display = 'none');
+    const map = { orders: 'ordersSection', products: 'productsSection', customers: 'customersSection', analytics: 'analyticsSection' };
+    document.getElementById(map[section]).style.display = 'block';
+    if (section === 'products') loadProducts();
+    if (section === 'customers') renderCustomers();
+    if (section === 'analytics') renderAnalytics();
   }
 
   // ---- Orders ----
   async function loadOrders() {
-    const res = await fetch(`${API_BASE}/admin/orders`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!res.ok) { logout(); return; }
-    allOrders = await res.json();
-    renderTabs();
-    render();
+    try {
+      const res = await fetch(`${API_BASE}/admin/orders`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) { if (res.status === 401) logout(); return; }
+      allOrders = await res.json();
+      renderTabs();
+      render();
+    } catch (e) { console.error('Load orders error:', e); }
   }
 
   function renderTabs() {
@@ -186,21 +342,41 @@
     STATUSES.forEach(s => counts[s] = allOrders.filter(o => o.status === s).length);
     const tabs = ["all", ...STATUSES];
     document.getElementById("tabs").innerHTML = tabs.map(t =>
-      `<button class="tab ${t === activeTab ? "active" : ""}" onclick="setTab('${t}')">${t === "all" ? "All" : t[0].toUpperCase() + t.slice(1)} (${counts[t] || 0})</button>`
+      `<button class="tab ${t === activeTab ? "active" : ""}" onclick="setTab('${t}')">${t === "all" ? "📋 All" : t[0].toUpperCase() + t.slice(1)}<span class="badge">${counts[t] || 0}</span></button>`
     ).join("");
   }
 
   function setTab(t) { activeTab = t; renderTabs(); render(); }
 
-  function render() {
+  function filteredOrders() {
     const q = document.getElementById("search").value.trim().toLowerCase();
+    const dateFilter = document.getElementById("filterDate").value;
     let filtered = allOrders;
     if (activeTab !== "all") filtered = filtered.filter(o => o.status === activeTab);
     if (q) filtered = filtered.filter(o => (o.customer_name || "").toLowerCase().includes(q) || (o.customer_phone || "").includes(q));
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(o => {
+        const d = new Date(o.created_at);
+        if (dateFilter === 'today') return d.toDateString() === now.toDateString();
+        if (dateFilter === 'week') { const w = new Date(now); w.setDate(w.getDate() - 7); return d >= w; }
+        if (dateFilter === 'month') { const m = new Date(now); m.setMonth(m.getMonth() - 1); return d >= m; }
+        return true;
+      });
+    }
+    return filtered;
+  }
+
+  function render() {
+    const filtered = filteredOrders();
+    const total = allOrders.reduce((s, o) => s + o.total, 0);
+    const completed = allOrders.filter(o => o.status === 'delivered');
+    const avg = completed.length ? total / completed.length : 0;
 
     document.getElementById("statTotal").textContent = allOrders.length;
     document.getElementById("statPending").textContent = allOrders.filter(o => o.status === "confirmed" || o.status === "packed").length;
-    document.getElementById("statRevenue").textContent = "₹" + allOrders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.total, 0);
+    document.getElementById("statRevenue").textContent = "₹" + total;
+    document.getElementById("statAvgOrder").textContent = "₹" + Math.round(avg);
 
     document.getElementById("empty").style.display = filtered.length ? "none" : "block";
     document.getElementById("orders").innerHTML = filtered.map(renderOrder).join("");
@@ -211,30 +387,59 @@
     const addr = o.addr_line ? `${o.addr_line}, ${o.addr_city} - ${o.addr_pincode}` : "No address";
     return `
       <div class="card">
-        <div class="row">
-          <span class="id">Order #${o.id}</span>
-          <span class="status s-${o.status}">${o.status}</span>
+        <div class="order-header">
+          <span class="order-id">#${o.id} · ${o.customer_name}</span>
+          <span class="order-status status-${o.status}">${o.status}</span>
         </div>
-        <div class="muted">${new Date(o.created_at).toLocaleString("en-IN")}</div>
-        <div class="items">${items}</div>
-        <div class="muted">👤 ${o.customer_name} · 📞 ${o.customer_phone}</div>
-        <div class="muted">📍 ${addr}</div>
-        <div class="row" style="margin-top:10px">
+        <div class="order-meta">📅 ${new Date(o.created_at).toLocaleString("en-IN")} · 📞 ${o.customer_phone}</div>
+        <div class="order-items">🛍️ ${items}</div>
+        <div class="order-meta">📍 ${addr}</div>
+        <div class="order-actions">
           <b>₹${o.total}</b>
           <select onchange="updateStatus(${o.id}, this.value)">
             ${STATUSES.map(s => `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
           </select>
+          <button class="btn btn-secondary btn-sm" onclick="viewOrder(${o.id})">📋 Details</button>
         </div>
       </div>`;
   }
 
   async function updateStatus(orderId, status) {
-    await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status }),
-    });
+    await fetch(`${API_BASE}/admin/orders/${orderId}/status`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ status }) });
+    notify('Status Updated', `Order #${orderId} is now ${status}`, 'success');
     loadOrders();
+  }
+
+  function viewOrder(id) {
+    const order = allOrders.find(o => o.id === id);
+    if (!order) return;
+    const items = order.items.map(it => `<li>${it.name} × ${it.quantity} = ₹${it.price * it.quantity}</li>`).join('');
+    const addr = order.addr_line ? `${order.addr_line}, ${order.addr_city} - ${order.addr_pincode}` : "No address on file";
+    document.getElementById('modalTitle').textContent = `Order #${order.id}`;
+    document.getElementById('modalContent').innerHTML = `
+      <p><b>Customer:</b> ${order.customer_name} (${order.customer_phone})</p>
+      <p><b>Address:</b> ${addr}</p>
+      <p><b>Placed:</b> ${new Date(order.created_at).toLocaleString("en-IN")}</p>
+      <p><b>Status:</b> <span class="order-status status-${order.status}">${order.status}</span></p>
+      <p style="margin-top:10px;"><b>Items:</b></p>
+      <ul>${items}</ul>
+      <p style="margin-top:10px;font-size:16px;"><b>Total: ₹${order.total}</b></p>
+    `;
+    document.getElementById('orderModal').classList.add('active');
+  }
+  function closeModal() { document.getElementById('orderModal').classList.remove('active'); }
+
+  function exportOrders() {
+    if (!allOrders.length) { notify('Nothing to export', 'There are no orders yet', 'error'); return; }
+    const rows = [["Order ID", "Date", "Customer", "Phone", "Items", "Total", "Status"]];
+    allOrders.forEach(o => rows.push([o.id, new Date(o.created_at).toLocaleString("en-IN"), o.customer_name, o.customer_phone, o.items.map(it => `${it.name} x${it.quantity}`).join("; "), o.total, o.status]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `cure-beauty-orders-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   // ---- Products ----
@@ -248,54 +453,46 @@
 
   function renderProduct(p) {
     return `
-      <div class="card">
-        <div class="prodRow">
-          <div class="info">
-            <div class="prodName">${p.name}</div>
-            <div class="prodMeta">${p.brand || "—"} · ${p.category} · ₹${p.price}${p.mrp && p.mrp > p.price ? ` <s style="color:#B0A0A4">₹${p.mrp}</s>` : ""}</div>
-          </div>
-          <button onclick="editProduct(${p.id})" style="background:#fff;border:1px solid #EFDEE1;color:#5A484D;padding:6px 10px;font-size:11.5px">Edit</button>
-          <button class="delBtn" onclick="deleteProduct(${p.id})">Delete</button>
+      <div class="product-card">
+        <div class="product-name">${p.name}</div>
+        <div class="product-meta">${p.brand || "—"} · ${p.category} · Stock: ${p.stock ?? "—"}</div>
+        <div class="product-price">₹${p.price}${p.mrp && p.mrp > p.price ? ` <span style="font-size:13px;color:var(--text-muted);text-decoration:line-through;">₹${p.mrp}</span>` : ""}</div>
+        <div class="product-actions">
+          <button class="btn btn-secondary btn-sm" onclick="editProduct(${p.id})">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">🗑️ Delete</button>
         </div>
       </div>`;
   }
 
   function toggleAddForm() {
     editingProductId = null;
-    document.getElementById("formTitle").textContent = "Add product";
+    document.getElementById("formTitle").textContent = "Add Product";
     clearForm();
     document.getElementById("addProductForm").style.display = "block";
-    document.getElementById("addToggleBtn").style.display = "none";
   }
-
-  function cancelForm() {
-    document.getElementById("addProductForm").style.display = "none";
-    document.getElementById("addToggleBtn").style.display = "block";
-    editingProductId = null;
-  }
-
+  function cancelForm() { document.getElementById("addProductForm").style.display = "none"; editingProductId = null; }
   function clearForm() {
-    ["p_name", "p_brand", "p_price", "p_mrp", "p_description", "p_image"].forEach(id => document.getElementById(id).value = "");
+    ["p_name", "p_brand", "p_price", "p_mrp", "p_stock", "p_description", "p_image"].forEach(id => document.getElementById(id).value = "");
     document.getElementById("p_category").value = "Face";
     document.getElementById("p_concern").value = "Brightening";
+    document.getElementById("p_stock").value = "100";
     document.getElementById("prodError").textContent = "";
   }
-
   function editProduct(id) {
     const p = allProducts.find(x => x.id === id);
     if (!p) return;
     editingProductId = id;
-    document.getElementById("formTitle").textContent = "Edit product";
+    document.getElementById("formTitle").textContent = "Edit Product";
     document.getElementById("p_name").value = p.name;
     document.getElementById("p_brand").value = p.brand || "";
     document.getElementById("p_category").value = p.category || "Face";
     document.getElementById("p_price").value = p.price;
     document.getElementById("p_mrp").value = p.mrp || "";
+    document.getElementById("p_stock").value = p.stock ?? 100;
     document.getElementById("p_concern").value = p.concern || "Brightening";
     document.getElementById("p_description").value = p.description || "";
     document.getElementById("p_image").value = p.image_url || "";
     document.getElementById("addProductForm").style.display = "block";
-    document.getElementById("addToggleBtn").style.display = "none";
     document.getElementById("addProductForm").scrollIntoView({ behavior: "smooth" });
   }
 
@@ -304,24 +501,23 @@
     const price = Number(document.getElementById("p_price").value);
     const errEl = document.getElementById("prodError");
     errEl.textContent = "";
-    if (!name || !price) { errEl.textContent = "Product name and selling price are required."; return; }
-
+    if (!name || !price) { errEl.textContent = "Product name and price are required."; return; }
     const payload = {
       name,
       brand: document.getElementById("p_brand").value.trim(),
       category: document.getElementById("p_category").value,
       price,
       mrp: Number(document.getElementById("p_mrp").value) || price,
+      stock: Number(document.getElementById("p_stock").value) || 0,
       concern: document.getElementById("p_concern").value,
       description: document.getElementById("p_description").value.trim(),
       image_url: document.getElementById("p_image").value.trim(),
     };
-
     const url = editingProductId ? `${API_BASE}/admin/products/${editingProductId}` : `${API_BASE}/admin/products`;
     const method = editingProductId ? "PATCH" : "POST";
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
     if (!res.ok) { errEl.textContent = "Something went wrong. Try again."; return; }
-
+    notify('Saved', `${name} was saved successfully`, 'success');
     cancelForm();
     loadProducts();
   }
@@ -329,14 +525,56 @@
   async function deleteProduct(id) {
     if (!confirm("Delete this product? This can't be undone.")) return;
     await fetch(`${API_BASE}/admin/products/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    notify('Deleted', 'Product removed', 'success');
     loadProducts();
+  }
+
+  // ---- Customers (computed from orders, no extra backend needed) ----
+  function renderCustomers() {
+    const map = {};
+    allOrders.forEach(o => {
+      const key = o.customer_phone;
+      if (!map[key]) map[key] = { name: o.customer_name, phone: o.customer_phone, orders: 0, spent: 0 };
+      map[key].orders += 1;
+      map[key].spent += o.total;
+    });
+    const list = Object.values(map).sort((a, b) => b.spent - a.spent);
+    document.getElementById("customerCount").textContent = list.length;
+    document.getElementById("topCustomer").textContent = list[0] ? list[0].name : "-";
+    document.getElementById("customersList").innerHTML = list.length ? list.map(c => `
+      <div class="card">
+        <div class="order-header"><span class="order-id">${c.name}</span><span class="order-meta">📞 ${c.phone}</span></div>
+        <div class="order-meta">${c.orders} order${c.orders > 1 ? "s" : ""} · Total spent: ₹${c.spent}</div>
+      </div>`).join("") : `<div style="text-align:center;padding:40px 0;color:var(--text-muted);">No customers yet</div>`;
+  }
+
+  // ---- Analytics (computed from orders, no extra backend needed) ----
+  function renderAnalytics() {
+    const now = new Date();
+    const sum = (arr) => arr.reduce((s, o) => s + o.total, 0);
+    const today = allOrders.filter(o => new Date(o.created_at).toDateString() === now.toDateString());
+    const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+    const week = allOrders.filter(o => new Date(o.created_at) >= weekAgo);
+    const monthAgo = new Date(now); monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const month = allOrders.filter(o => new Date(o.created_at) >= monthAgo);
+
+    document.getElementById("todayRevenue").textContent = "₹" + sum(today);
+    document.getElementById("weekRevenue").textContent = "₹" + sum(week);
+    document.getElementById("monthRevenue").textContent = "₹" + sum(month);
+
+    const productCounts = {};
+    allOrders.forEach(o => o.items.forEach(it => { productCounts[it.name] = (productCounts[it.name] || 0) + it.quantity; }));
+    const top = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    document.getElementById("topProductsList").innerHTML = top.length ? top.map(([name, qty]) =>
+      `<div class="order-meta" style="margin-bottom:6px;">${name} — ${qty} sold</div>`
+    ).join("") : `<div class="order-meta">No sales data yet</div>`;
   }
 
   function showDashboard() {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
     loadOrders();
-    setInterval(loadOrders, 15000); // refresh every 15s so new orders show up automatically
+    setInterval(loadOrders, 15000);
   }
 
   if (token) showDashboard();
